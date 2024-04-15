@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     context.translate(canvas.width / 2, canvas.height / 2)
 
-    const universe = new Universe(context, canvas.width, canvas.height, 900, 5000);
+    const universe = new Universe(context, canvas.width, canvas.height, 900, 10000);
 
     function draw() {
                 
@@ -30,6 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
             universe.offset += 20;
         if (event.key == 'ArrowDown')
             universe.offset -= 20;
+        if (event.key == 'ArrowLeft')
+            universe.deltaTime = Math.min(universe.deltaTime+0.1, 3);
+        if (event.key == 'ArrowRight')
+            universe.deltaTime = Math.max(universe.deltaTime-0.1, 0);
     });
 
     window.requestAnimationFrame(draw);

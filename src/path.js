@@ -9,25 +9,22 @@ export default class Path {
     start;
     end;
 
-    constructor(startSoulPos, endSoul, startRealm, endRealm, duration=200) {
+    constructor(startSoulPos, endSoul, startRealm, endRealm, duration=200, length = 0.1) {
         this.startTime = Date.now();
         this.startSoulPos = startSoulPos;
         this.endSoul = endSoul;
         this.startRealm = startRealm;
         this.endRealm = endRealm;
-        this.duration = duration;
+        this.duration = duration*(1-length);
+        this.length = length;
 
         this.start = {};
         this.end = {};
         this.start.x = startRealm.position.x - startRealm.width/2 + startSoulPos.x;
         this.start.y = startRealm.position.y - startRealm.height/2 + startSoulPos.y;
-        // this.start.x = startRealm.position.x + startSoulPos.x;
-        // this.start.y = startRealm.position.y + startSoulPos.y;
 
         this.end.x = endRealm.position.x - endRealm.width/2 + endSoul.position.x;
         this.end.y = endRealm.position.y - endRealm.height/2 + endSoul.position.y;
-        // this.end.x = endRealm.position.x + endSoul.position.x;
-        // this.end.y = endRealm.position.y + endSoul.position.y;
     }
 
     getPoint(timeOff=0) {
@@ -52,14 +49,14 @@ export default class Path {
             context.save();
             const newPath = new Path2D();
             const start = this.getPoint();
-            const end = this.getPoint(0.1);
-            newPath.moveTo(this.start.x, this.start.y);
-            newPath.lineTo(this.end.x, this.end.y);
+            const end = this.getPoint(this.length);
+            newPath.moveTo(start.x, start.y);
+            newPath.lineTo(end.x, end.y);
 
             const length = Math.sqrt(Math.pow(end.x-start.x, 2)+Math.pow(end.y-start.y,2));
 
             context.strokeStyle = this.endSoul.color;
-            context.globalAlpha = 0.1
+            context.globalAlpha = 0.3
             context.stroke(newPath);
             context.globalAlpha = 1
             context.restore();
@@ -70,15 +67,7 @@ export default class Path {
 
             context.translate(-this.endRealm.width/2, -this.endRealm.height/2);
 
-            context.translate(this.endSoul.position.x, this.endSoul.position.y);
-
-            const soulPath = new Path2D();
-            soulPath.rect(-0.5, -0.5, 1,1);
-
-            context.fillStyle = this.endSoul.color;
-            context.fill(soulPath);
-
-            // this.endSoul.draw(context);
+            this.endSoul.draw(context);
             context.restore();
         }
 

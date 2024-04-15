@@ -17,8 +17,10 @@ export default class Soul {
         this.maxKarma = maxKarma;
         this.karma.pos = Math.random()*maxKarma;
         this.karma.neg = Math.random()*maxKarma;
-        this.stage = Math.floor(15*Math.exp(500*(Math.random()-1)));
+
         this.age = 0;
+
+        this.updateStage();
 
         this.position = {x:null, y:null};
 
@@ -27,8 +29,9 @@ export default class Soul {
     }
 
     getRealmLevel() {
-        if (this.stage == 14)
-            return 13;
+        if (this.stage >= 14) {
+            return 14;
+        }
         let netKarma = this.karma.pos - this.karma.neg;
 
         let realm = netKarma/this.maxKarma;
@@ -47,16 +50,20 @@ export default class Soul {
     }
 
     update(neighbors) {
+        if (this.stage >= 14)
+            return true;
+
         this.age ++;
 
         const seed = Math.random();
 
-        this.karma.pos += Math.random()*5;
-        this.karma.neg += Math.random()*5;
-
         /**
          * LIFE
          */
+
+        this.updateKarma();
+
+        this.updateStage();
 
         /**
          * DEATH
@@ -74,7 +81,87 @@ export default class Soul {
 
         }
 
+        if (this.stage >= 14)
+            return false;
+
         return true;
+    }
+
+    updateKarma() {
+        // console.log("======================");
+        // console.log(this.karma);
+        const karmic_multiplier = 1-this.stage/14
+        const pos_multiplier = Math.max(0, (this.karma.pos-this.karma.neg)/this.maxKarma);
+        const neg_multiplier = Math.max(0, (this.karma.neg-this.karma.pos)/this.maxKarma);
+
+        const offset = {x:0, y:0};
+
+        /**
+         * CHANCE OF CERTAIN RANDOM ACTIONS
+         */
+
+        /**
+         * Add Karma
+         */
+
+        // Help a soul
+        offset.x += Math.random()*pos_multiplier*karmic_multiplier;
+
+        // Hurt a soul
+        offset.y += Math.random()*neg_multiplier*karmic_multiplier;
+
+
+        /**
+         * Rid oneself of karma
+         */
+
+        // Remove positive karma
+        offset.x -= Math.random()*10*(1-karmic_multiplier);
+
+        // Remove negative karma
+        offset.y -= Math.random()*10*(1-karmic_multiplier);
+
+        this.karma.pos = Math.abs(Math.min(this.maxKarma, this.karma.pos + offset.x));
+        this.karma.neg = Math.abs(Math.min(this.maxKarma, this.karma.neg + offset.y));
+    }
+
+    updateStage() {
+
+        const seed = Math.random();
+
+        if (this.stage == 0)
+            return;
+
+        
+        const karmaPower = this.karma.pos+this.karma.neg;
+        const stageFactor = 1 - karmaPower/(2*this.maxKarma);
+
+        const stage = Math.floor(14*Math.exp(10*(stageFactor-1)));
+
+        this.stage = stage;
+
+        if (this.stage == 1)
+            if (seed > 0.8)
+                this.stage = 3;
+        else if (this.stage >= 2 && this.stage <= 5)
+            if (seed > 0.99)
+                this.stage = 7;
+        else if (this.stage >= 10)
+            if (seed > 0.99)
+                this.stage == 14;
+
+        this.updateColor();
+    }
+
+    updateColor() {
+        if (this.stage <= 1)
+            this.color = 'white';
+        else if (this.stage <= 5)
+            this.color = 'blue';
+        else if (this.stage <= 13)
+            this.color = 'red';
+        else
+            this.color = 'black'
     }
 
     draw(context) {
@@ -84,6 +171,12 @@ export default class Soul {
 
         context.fillStyle = this.color;
         context.fill(this.path);
+
+        if (this.stage >= 14) {
+            context.lineWidth = 0.2;
+            context.strokeStyle = 'white';
+            context.stroke(this.path);
+        }
 
 
         context.restore();

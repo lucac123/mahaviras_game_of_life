@@ -17,7 +17,7 @@ export default class Universe {
     realmheight = 50;
     realmwidth = 150;
 
-    deltaTime = 0;
+    deltaTime = 3;
     interval;
 
     maxKarma;
@@ -43,7 +43,7 @@ export default class Universe {
 
         this.initialize();
 
-        this.interval = setInterval(this.update.bind(this), this.deltaTime);
+        this.interval = setTimeout(this.update.bind(this), Math.pow(10,this.deltaTime));
     }
 
     initialize() {
@@ -78,21 +78,29 @@ export default class Universe {
         /**
          * LIBERATED REALM
          */
-        this.realms[8+num_heavens] = new Realm(this.realmwidth, this.realmheight-1, {x:0, y: -(num_heavens+1)*this.realmheight})
+        this.realms[8+num_heavens] = new Realm(Math.round(this.realmwidth*0.75), this.realmheight-1, {x:0, y: -(num_heavens+1)*this.realmheight})
     }
 
     addSoulToRealm(soul, capacityFactor=0.5, initial = false) {
         let realmIdx = soul.getRealmLevel();
-        if (!soul)
-            console.log(soul);
+        if (realmIdx == 14)
+            console.log(realmIdx, soul);
         while (!this.realms[realmIdx].addSoul(soul, capacityFactor)) {
-            let sign = Math.sign(realmIdx - 7);
+            let sign = Math.sign(Math.random()-0.5);
             if (sign == 0)
                 sign++;
             realmIdx += sign;
+            realmIdx = Math.max(0,Math.min(13, realmIdx));
         }
         if (!initial)
             this.realms[realmIdx].newsouls.push(soul);
+        
+        if (realmIdx != 7 && realmIdx != 14) {
+            soul.stage = 0;
+            soul.updateColor();
+        }
+        // if (realmIdx == 14)
+            // console.log(realmIdx, soul);
         return realmIdx;
     }
 
@@ -108,20 +116,11 @@ export default class Universe {
                 const endSoul = removedSouls[i];
                 const endRealm = this.realms[this.addSoulToRealm(endSoul)];
 
-                this.paths.push(new Path(startSoulPos, endSoul, startRealm, endRealm));
-
-                // const startRealm = this.realms[realmIdx];
-                // const startPos = {x: startRealm.position.x - startRealm.width/2 + removedSouls[i].position.x,
-                //                     y: startRealm.position.y - startRealm.height/2 + removedSouls[i].position.y};
-                // const endIdx = this.addSoulToRealm(removedSouls[i]);
-                // const endRealm = this.realms[endIdx];
-
-                // const endPos = {x: endRealm.position.x - endRealm.width/2 + removedSouls[i].position.x,
-                // y: endRealm.position.y - endRealm.height/2 + removedSouls[i].position.y};
-
-                // this.paths.push(new Path(startPos, endPos))
+                this.paths.push(new Path(startSoulPos, endSoul, startRealm, endRealm, Math.pow(10, this.deltaTime)));
             }
         }
+
+        this.interval = setTimeout(this.update.bind(this), Math.pow(10,this.deltaTime));
     }
 
     draw() {
@@ -136,7 +135,7 @@ export default class Universe {
 
         this.realms.forEach(realm => realm.draw(this.context));
 
-        // this.paths.forEach(path => path.draw(this.context));
+        this.paths.forEach(path => path.draw(this.context));
 
         this.context.restore();
 
