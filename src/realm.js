@@ -11,6 +11,8 @@ export default class Realm {
 
     frame;
 
+    newsouls = [];
+
     constructor(width, height, position) {
         this.position = {...position};
         this.width = width;
@@ -42,8 +44,9 @@ export default class Realm {
         }
     }
 
-    addSoul(soul) {
-        if (this.capacity == this.width * this.height)
+    addSoul(soul, capacityFactor = 0.8) {
+        soul.age = 0;
+        if (this.capacity >= capacityFactor * this.width * this.height)
             return false;
         this.capacity ++;
 
@@ -56,10 +59,45 @@ export default class Realm {
     }
 
     removeSoul(soul) {
-        this.grid[soul.position.x, soul.position.y] = null;
-        this.slotQueue.unshift({...soul.position});
-        soul.position = {x:null, y:null};
+        this.grid[soul.position.x][soul.position.y] = null;
+
+        const randIndex = Math.floor(this.slotQueue.length * Math.random());
+
+        this.slotQueue.splice(randIndex, 0, {...soul.position});
         this.capacity--;
+    }
+
+    update() {
+        this.newsouls = [];
+        
+        const removedSouls = [];
+        
+        for (let i = 0; i < this.width; i++) {
+            for (let j = 0; j < this.height; j++) {
+                const soul = this.grid[i][j];
+                if (soul != null) {
+                    const neighbors = [];
+                    for (let k = -1; k <= 1; k++)
+                        for (let l = -1; l <= 1; l++) {
+                            try {
+                                const neighbor = this.grid[i+l][j+k];
+                                if (!(l == 0 && k == 0) && neighbor)
+                                    neighbors.push(neighbor)
+                            }
+                            catch (e) {
+                            }
+                        }
+                    
+                    if(!soul.update(neighbors)) {
+                        removedSouls.push(soul);
+                    }
+                }
+            }
+        }
+
+        removedSouls.forEach(soul => this.removeSoul(soul));
+
+        return removedSouls;
     }
 
     draw(context) {
@@ -74,11 +112,11 @@ export default class Realm {
         
         
         context.save();
-        // context.translate(-this.width, -this.height);
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
                 if (this.grid[i][j] != null)
-                    this.grid[i][j].draw(context);
+                    if (!this.newsouls.includes(this.grid[i][j]))
+                        this.grid[i][j].draw(context);
             }
         }
 

@@ -12,14 +12,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     context.translate(canvas.width / 2, canvas.height / 2)
 
-    const universe = new Universe(context, canvas.width, canvas.height, 1080, 5000);
+    const universe = new Universe(context, canvas.width, canvas.height, 900, 5000);
 
     function draw() {
-        universe.update();
+                
         universe.draw();
 
         window.requestAnimationFrame(draw);
     }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key == 'w')
+            universe.zoom += 0.1;
+        if (event.key == 's')
+            universe.zoom -= 0.1;
+        if (event.key == 'ArrowUp')
+            universe.offset += 20;
+        if (event.key == 'ArrowDown')
+            universe.offset -= 20;
+    });
 
     window.requestAnimationFrame(draw);
 })
