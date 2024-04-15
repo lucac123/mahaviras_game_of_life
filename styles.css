@@ -13,4 +13,5 @@ canvas {
     position: fixed;
     z-index: 0;
     cursor: auto;
+    -ms-interpolation-mode: nearest-neighbor;
 }
